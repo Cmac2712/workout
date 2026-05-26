@@ -1,0 +1,140 @@
+import { createStore } from "zustand/vanilla";
+import { useStore } from "zustand";
+import {
+  PersistedState,
+  SCHEMA_VERSION,
+  Session,
+  SessionExercise,
+} from "../types";
+import { genId } from "../util/id";
+import { saveState } from "../persistence/persistence";
+
+type Persist = (state: PersistedState) => void;
+
+export type WorkoutState = PersistedState;
+
+export type WorkoutActions = {
+  startSession: () => void;
+  endSession: () => void;
+  addExerciseToSession: (exerciseId: string) => void;
+  logSet: (sessionExerciseId: string, reps: number, weight: number) => void;
+  hydrate: (state: PersistedState) => void;
+};
+
+export type WorkoutStore = WorkoutState & WorkoutActions;
+
+export const initialState: WorkoutState = {
+  schemaVersion: SCHEMA_VERSION,
+  activeSession: null,
+  history: [],
+};
+
+function snapshot(state: WorkoutState): PersistedState {
+  return {
+    schemaVersion: state.schemaVersion,
+    activeSession: state.activeSession,
+    history: state.history,
+  };
+}
+
+const defaultPersist: Persist = (state) => {
+  void saveState(state).catch(() => {
+    // Persistence failures are non-fatal for an in-progress session.
+  });
+};
+
+export function createWorkoutStore(persist: Persist = defaultPersist) {
+  return createStore<WorkoutStore>((set, get) => {
+    // Apply a state update then persist the resulting snapshot.
+    const commit = (next: WorkoutState) => {
+      set(next);
+      persist(snapshot(get()));
+    };
+
+    return {
+      ...initialState,
+
+      startSession: () => {
+        if (get().activeSession !== null) {
+          throw new Error("A session is already active");
+        }
+        const session: Session = {
+          id: genId(),
+          startedAt: Date.now(),
+          endedAt: null,
+          sessionExercises: [],
+        };
+        commit({ ...get(), activeSession: session });
+      },
+
+      endSession: () => {
+        const active = get().activeSession;
+        if (active === null) {
+          throw new Error("No active session to end");
+        }
+        const ended: Session = { ...active, endedAt: Date.now() };
+        commit({
+          ...get(),
+          activeSession: null,
+          history: [...get().history, ended],
+        });
+      },
+
+      addExerciseToSession: (exerciseId) => {
+        const active = get().activeSession;
+        if (active === null) {
+          throw new Error("No active session");
+        }
+        const sessionExercise: SessionExercise = {
+          id: genId(),
+          exerciseId,
+          order: active.sessionExercises.length,
+          sets: [],
+        };
+        commit({
+          ...get(),
+          activeSession: {
+            ...active,
+            sessionExercises: [...active.sessionExercises, sessionExercise],
+          },
+        });
+      },
+
+      logSet: (sessionExerciseId, reps, weight) => {
+        const active = get().activeSession;
+        if (active === null) {
+          throw new Error("No active session");
+        }
+        const sessionExercises = active.sessionExercises.map((se) => {
+          if (se.id !== sessionExerciseId) return se;
+          return {
+            ...se,
+            sets: [
+              ...se.sets,
+              {
+                id: genId(),
+                setNumber: se.sets.length + 1,
+                reps,
+                weight,
+              },
+            ],
+          };
+        });
+        commit({
+          ...get(),
+          activeSession: { ...active, sessionExercises },
+        });
+      },
+
+      hydrate: (state) => {
+        set({ ...get(), ...state });
+      },
+    };
+  });
+}
+
+export const workoutStore = createWorkoutStore();
+
+export function useWorkoutStore<T>(selector: (state: WorkoutStore) => T): T {
+  return useStore(workoutStore, selector);
+}
