@@ -41,6 +41,9 @@ export function WorkoutScreen() {
           onRemove={() =>
             workoutStore.getState().removeExerciseFromSession(se.id)
           }
+          onOpenHistory={() =>
+            navigation.navigate("ExerciseHistory", { exerciseId: se.exerciseId })
+          }
           onUpdateSet={(setId, patch) =>
             workoutStore.getState().updateSet(setId, patch)
           }

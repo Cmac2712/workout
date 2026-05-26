@@ -13,6 +13,7 @@ type Props = {
   prefill: { reps: number; weight: number } | null;
   onLogSet: (reps: number, weight: number) => void;
   onRemove: () => void;
+  onOpenHistory: () => void;
   onUpdateSet: (setId: string, patch: { reps?: number; weight?: number }) => void;
   onDeleteSet: (setId: string) => void;
 };
@@ -25,6 +26,7 @@ export function SessionExerciseCard({
   prefill,
   onLogSet,
   onRemove,
+  onOpenHistory,
   onUpdateSet,
   onDeleteSet,
 }: Props) {
@@ -37,7 +39,14 @@ export function SessionExerciseCard({
   return (
     <View className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
       <View className="flex-row items-center justify-between mb-2">
-        <Text className="text-lg font-bold text-gray-900 flex-1 pr-2">{name}</Text>
+        <Pressable
+          onPress={onOpenHistory}
+          hitSlop={6}
+          accessibilityLabel={`View ${name} history`}
+          className="flex-1 pr-2"
+        >
+          <Text className="text-lg font-bold text-blue-600">{name}</Text>
+        </Pressable>
         <Pressable
           onPress={onRemove}
           accessibilityLabel={`Remove ${name}`}

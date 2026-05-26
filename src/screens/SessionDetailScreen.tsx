@@ -1,5 +1,10 @@
-import { ScrollView, View, Text } from "react-native";
-import { useRoute, type RouteProp } from "@react-navigation/native";
+import { ScrollView, View, Text, Pressable } from "react-native";
+import {
+  useRoute,
+  useNavigation,
+  type RouteProp,
+} from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useWorkoutStore, workoutStore } from "../store/workoutStore";
 import { getById } from "../data/exerciseLibrary";
 import type { HistoryStackParamList } from "../navigation/RootNavigator";
@@ -7,9 +12,11 @@ import { formatSessionDate, formatDuration } from "../util/format";
 import { EditableSetRow } from "../components/EditableSetRow";
 
 type DetailRoute = RouteProp<HistoryStackParamList, "SessionDetail">;
+type Nav = NativeStackNavigationProp<HistoryStackParamList, "SessionDetail">;
 
 export function SessionDetailScreen() {
   const { params } = useRoute<DetailRoute>();
+  const navigation = useNavigation<Nav>();
   const session = useWorkoutStore((s) =>
     s.history.find((x) => x.id === params.sessionId)
   );
@@ -40,7 +47,17 @@ export function SessionDetailScreen() {
         const name = getById(se.exerciseId)?.name ?? se.exerciseId;
         return (
           <View key={se.id} className="bg-white rounded-2xl p-4 mb-3 shadow-sm">
-            <Text className="text-lg font-bold text-gray-900 mb-2">{name}</Text>
+            <Pressable
+              onPress={() =>
+                navigation.navigate("ExerciseHistory", {
+                  exerciseId: se.exerciseId,
+                })
+              }
+              hitSlop={6}
+              accessibilityLabel={`View ${name} history`}
+            >
+              <Text className="text-lg font-bold text-blue-600 mb-2">{name}</Text>
+            </Pressable>
             {se.sets.length === 0 ? (
               <Text className="text-sm text-gray-400">No sets logged</Text>
             ) : (

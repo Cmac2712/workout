@@ -4,15 +4,18 @@ import { WorkoutScreen } from "../screens/WorkoutScreen";
 import { ExercisePickerScreen } from "../screens/ExercisePickerScreen";
 import { HistoryScreen } from "../screens/HistoryScreen";
 import { SessionDetailScreen } from "../screens/SessionDetailScreen";
+import { ExerciseHistoryScreen } from "../screens/ExerciseHistoryScreen";
 
 export type WorkoutStackParamList = {
   WorkoutHome: undefined;
   ExercisePicker: undefined;
+  ExerciseHistory: { exerciseId: string };
 };
 
 export type HistoryStackParamList = {
   HistoryHome: undefined;
   SessionDetail: { sessionId: string };
+  ExerciseHistory: { exerciseId: string };
 };
 
 const Tab = createBottomTabNavigator();
@@ -28,6 +31,11 @@ function WorkoutStackScreen() {
         component={ExercisePickerScreen}
         options={{ presentation: "modal", title: "Add Exercise" }}
       />
+      <WorkoutStack.Screen
+        name="ExerciseHistory"
+        component={ExerciseHistoryScreen}
+        options={{ title: "Exercise" }}
+      />
     </WorkoutStack.Navigator>
   );
 }
@@ -37,6 +45,11 @@ function HistoryStackScreen() {
     <HistoryStack.Navigator>
       <HistoryStack.Screen name="HistoryHome" component={HistoryScreen} options={{ title: "History" }} />
       <HistoryStack.Screen name="SessionDetail" component={SessionDetailScreen} options={{ title: "Session" }} />
+      <HistoryStack.Screen
+        name="ExerciseHistory"
+        component={ExerciseHistoryScreen}
+        options={{ title: "Exercise" }}
+      />
     </HistoryStack.Navigator>
   );
 }

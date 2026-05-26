@@ -1,6 +1,6 @@
-import { createWorkoutStore, WorkoutStore } from "./workoutStore";
+import { createWorkoutStore, WorkoutStore, pickTopSet } from "./workoutStore";
 import { StoreApi } from "zustand/vanilla";
-import { PersistedState, SCHEMA_VERSION, Session } from "../types";
+import { PersistedState, SCHEMA_VERSION, Session, Set } from "../types";
 
 function freshStore(): StoreApi<WorkoutStore> {
   // No-op persist: exercise the store in pure form, no AsyncStorage.
@@ -492,6 +492,146 @@ describe("workoutStore", () => {
       expect(
         saved[saved.length - 1].activeSession!.sessionExercises[0].sets
       ).toHaveLength(0);
+    });
+  });
+
+  describe("pickTopSet", () => {
+    const s = (
+      setNumber: number,
+      reps: number,
+      weight: number
+    ): Set => ({ id: `x${setNumber}`, setNumber, reps, weight });
+
+    it("returns undefined for an empty set list", () => {
+      expect(pickTopSet([])).toBeUndefined();
+    });
+
+    it("picks the highest-weight set regardless of order", () => {
+      const top = s(2, 6, 100);
+      expect(pickTopSet([s(1, 8, 80), top, s(3, 10, 90)])).toBe(top);
+    });
+
+    it("breaks weight ties by reps descending", () => {
+      const top = s(1, 8, 100);
+      expect(pickTopSet([top, s(2, 5, 100)])).toBe(top);
+    });
+
+    it("breaks weight+reps ties by setNumber descending", () => {
+      const top = s(3, 8, 100);
+      expect(pickTopSet([s(1, 8, 100), top, s(2, 8, 100)])).toBe(top);
+    });
+  });
+
+  describe("getHistoryFor", () => {
+    it("returns empty sessions and topSetWeights when the exercise was never performed", () => {
+      const store = freshStore();
+      expect(store.getState().getHistoryFor("bench-press")).toEqual({
+        sessions: [],
+        topSetWeights: [],
+      });
+    });
+
+    it("excludes sessions where the exercise was added but has no sets", () => {
+      const store = freshStore();
+      store.getState().startSession();
+      store.getState().addExerciseToSession("bench-press");
+      expect(store.getState().getHistoryFor("bench-press")).toEqual({
+        sessions: [],
+        topSetWeights: [],
+      });
+    });
+
+    it("returns a single session's sets and its top-set weight", () => {
+      const store = hydrated([
+        session(1000, "bench-press", [
+          { setNumber: 1, reps: 8, weight: 80 },
+          { setNumber: 2, reps: 6, weight: 85 },
+          { setNumber: 3, reps: 4, weight: 82.5 },
+        ]),
+      ]);
+      const h = store.getState().getHistoryFor("bench-press");
+      expect(h.sessions).toEqual([
+        {
+          id: "s-1000",
+          startedAt: 1000,
+          sets: [
+            { setNumber: 1, reps: 8, weight: 80 },
+            { setNumber: 2, reps: 6, weight: 85 },
+            { setNumber: 3, reps: 4, weight: 82.5 },
+          ],
+        },
+      ]);
+      expect(h.topSetWeights).toEqual([85]);
+    });
+
+    it("scopes to the requested exercise, ignoring others in the same session", () => {
+      const multi: Session = {
+        id: "s-multi",
+        startedAt: 2000,
+        endedAt: 3000,
+        sessionExercises: [
+          {
+            id: "se-a",
+            exerciseId: "bench-press",
+            order: 0,
+            sets: [{ id: "a1", setNumber: 1, reps: 8, weight: 80 }],
+          },
+          {
+            id: "se-b",
+            exerciseId: "squat",
+            order: 1,
+            sets: [{ id: "b1", setNumber: 1, reps: 5, weight: 120 }],
+          },
+        ],
+      };
+      const store = hydrated([multi]);
+      const h = store.getState().getHistoryFor("bench-press");
+      expect(h.sessions).toHaveLength(1);
+      expect(h.sessions[0].sets).toEqual([{ setNumber: 1, reps: 8, weight: 80 }]);
+      expect(h.topSetWeights).toEqual([80]);
+    });
+
+    it("orders topSetWeights chronologically (oldest first) and sessions newest-first", () => {
+      // Hydrate out of order to prove ordering is by startedAt, not array order.
+      const store = hydrated([
+        session(3000, "bench-press", [{ setNumber: 1, reps: 5, weight: 100 }]),
+        session(1000, "bench-press", [{ setNumber: 1, reps: 8, weight: 80 }]),
+        session(2000, "bench-press", [{ setNumber: 1, reps: 6, weight: 90 }]),
+      ]);
+      const h = store.getState().getHistoryFor("bench-press");
+      expect(h.topSetWeights).toEqual([80, 90, 100]);
+      expect(h.sessions.map((x) => x.id)).toEqual(["s-3000", "s-2000", "s-1000"]);
+    });
+
+    it("limits topSetWeights to the last 10 sessions but returns all sessions", () => {
+      const sessions: Session[] = [];
+      for (let i = 1; i <= 12; i++) {
+        sessions.push(
+          session(i * 1000, "bench-press", [{ setNumber: 1, reps: 5, weight: i }])
+        );
+      }
+      const store = hydrated(sessions);
+      const h = store.getState().getHistoryFor("bench-press");
+      expect(h.sessions).toHaveLength(12);
+      // Last 10 sessions (weights 3..12) in chronological order.
+      expect(h.topSetWeights).toEqual([3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    });
+
+    it("includes the active in-progress session", () => {
+      const store = hydrated([
+        session(1000, "bench-press", [{ setNumber: 1, reps: 5, weight: 80 }]),
+      ]);
+      store.getState().startSession();
+      store.getState().addExerciseToSession("bench-press");
+      const seId = store.getState().activeSession!.sessionExercises[0].id;
+      store.getState().logSet(seId, 3, 100);
+
+      const h = store.getState().getHistoryFor("bench-press");
+      // chronological: history (1000) then the active session (now)
+      expect(h.topSetWeights).toEqual([80, 100]);
+      expect(h.sessions).toHaveLength(2);
+      // sessions are newest-first, so the active session leads
+      expect(h.sessions[0].sets).toEqual([{ setNumber: 1, reps: 3, weight: 100 }]);
     });
   });
 

@@ -20,6 +20,29 @@ export type SessionSummary = {
   durationMs: number;
 };
 
+export type ExerciseHistory = {
+  // Every session in which this exercise was performed (≥1 set), newest-first.
+  sessions: {
+    id: string;
+    startedAt: number;
+    sets: { reps: number; weight: number; setNumber: number }[];
+  }[];
+  // Top-set weight per session for the last 10 sessions, chronological
+  // (oldest → newest) to feed the sparkline left-to-right.
+  topSetWeights: number[];
+};
+
+// The "top set" of a session: highest weight, ties broken by reps descending,
+// then by setNumber descending. Returns undefined for an empty set list.
+export function pickTopSet(sets: Set[]): Set | undefined {
+  if (sets.length === 0) return undefined;
+  return sets.reduce((best, s) => {
+    if (s.weight !== best.weight) return s.weight > best.weight ? s : best;
+    if (s.reps !== best.reps) return s.reps > best.reps ? s : best;
+    return s.setNumber > best.setNumber ? s : best;
+  });
+}
+
 export type WorkoutState = PersistedState;
 
 export type WorkoutActions = {
@@ -32,6 +55,7 @@ export type WorkoutActions = {
   deleteSet: (setId: string) => void;
   getLastSetFor: (exerciseId: string) => { reps: number; weight: number } | null;
   getSessionsList: () => SessionSummary[];
+  getHistoryFor: (exerciseId: string) => ExerciseHistory;
   hydrate: (state: PersistedState) => void;
 };
 
@@ -232,6 +256,49 @@ export function createWorkoutStore(persist: Persist = defaultPersist) {
             exerciseCount: s.sessionExercises.length,
             durationMs: (s.endedAt ?? s.startedAt) - s.startedAt,
           })),
+
+      getHistoryFor: (exerciseId) => {
+        const state = get();
+        // Like getLastSetFor, this spans every session including the active
+        // one — "all sets ever performed for this exercise" (PRD).
+        const allSessions = state.activeSession
+          ? [...state.history, state.activeSession]
+          : state.history;
+
+        // Sessions that actually have ≥1 set for this exercise, with the
+        // exercise's sets gathered (a session may add an exercise but log
+        // nothing — those are excluded).
+        const matched = allSessions
+          .map((session) => ({
+            id: session.id,
+            startedAt: session.startedAt,
+            sets: session.sessionExercises
+              .filter((se) => se.exerciseId === exerciseId)
+              .flatMap((se) => se.sets),
+          }))
+          .filter((m) => m.sets.length > 0);
+
+        const chronological = [...matched].sort(
+          (a, b) => a.startedAt - b.startedAt
+        );
+        const topSetWeights = chronological
+          .slice(-10)
+          .map((m) => pickTopSet(m.sets)!.weight);
+
+        const sessions = [...matched]
+          .sort((a, b) => b.startedAt - a.startedAt)
+          .map((m) => ({
+            id: m.id,
+            startedAt: m.startedAt,
+            sets: m.sets.map((s) => ({
+              reps: s.reps,
+              weight: s.weight,
+              setNumber: s.setNumber,
+            })),
+          }));
+
+        return { sessions, topSetWeights };
+      },
 
       hydrate: (state) => {
         set({ ...get(), ...state });
