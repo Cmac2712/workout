@@ -22,8 +22,8 @@ export const MUSCLE_GROUPS: MuscleGroup[] = [
   "core",
 ];
 
-// Curated, read-only library for Slice 0. The shape accommodates user-added
-// exercises in a future slice without a schema change.
+// Curated, read-only library. The shape accommodates user-added exercises in
+// a future slice without a schema change.
 const EXERCISES: Exercise[] = [
   // chest
   { id: "barbell-bench-press", name: "Barbell Bench Press", muscleGroup: "chest" },
