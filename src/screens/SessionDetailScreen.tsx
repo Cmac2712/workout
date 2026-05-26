@@ -1,9 +1,10 @@
 import { ScrollView, View, Text } from "react-native";
 import { useRoute, type RouteProp } from "@react-navigation/native";
-import { useWorkoutStore } from "../store/workoutStore";
+import { useWorkoutStore, workoutStore } from "../store/workoutStore";
 import { getById } from "../data/exerciseLibrary";
 import type { HistoryStackParamList } from "../navigation/RootNavigator";
 import { formatSessionDate, formatDuration } from "../util/format";
+import { EditableSetRow } from "../components/EditableSetRow";
 
 type DetailRoute = RouteProp<HistoryStackParamList, "SessionDetail">;
 
@@ -44,9 +45,14 @@ export function SessionDetailScreen() {
               <Text className="text-sm text-gray-400">No sets logged</Text>
             ) : (
               se.sets.map((set) => (
-                <Text key={set.id} className="text-sm text-gray-700">
-                  Set {set.setNumber}: {set.reps} reps × {set.weight} kg
-                </Text>
+                <EditableSetRow
+                  key={set.id}
+                  set={set}
+                  onUpdate={(patch) =>
+                    workoutStore.getState().updateSet(set.id, patch)
+                  }
+                  onDelete={() => workoutStore.getState().deleteSet(set.id)}
+                />
               ))
             )}
           </View>

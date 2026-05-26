@@ -41,6 +41,10 @@ export function WorkoutScreen() {
           onRemove={() =>
             workoutStore.getState().removeExerciseFromSession(se.id)
           }
+          onUpdateSet={(setId, patch) =>
+            workoutStore.getState().updateSet(setId, patch)
+          }
+          onDeleteSet={(setId) => workoutStore.getState().deleteSet(setId)}
         />
       ))}
 

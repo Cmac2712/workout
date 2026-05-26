@@ -27,6 +27,8 @@ export type WorkoutActions = {
   addExerciseToSession: (exerciseId: string) => void;
   removeExerciseFromSession: (sessionExerciseId: string) => void;
   logSet: (sessionExerciseId: string, reps: number, weight: number) => void;
+  updateSet: (setId: string, patch: { reps?: number; weight?: number }) => void;
+  deleteSet: (setId: string) => void;
   getLastSetFor: (exerciseId: string) => { reps: number; weight: number } | null;
   getSessionsList: () => SessionSummary[];
   hydrate: (state: PersistedState) => void;
@@ -39,6 +41,16 @@ export const initialState: WorkoutState = {
   activeSession: null,
   history: [],
 };
+
+// Apply fn to every session (active + history). Set edit/delete intentionally
+// make no active/historical distinction — a set is found by id wherever it lives.
+function mapSessions(state: WorkoutState, fn: (s: Session) => Session): WorkoutState {
+  return {
+    ...state,
+    activeSession: state.activeSession ? fn(state.activeSession) : null,
+    history: state.history.map(fn),
+  };
+}
 
 function snapshot(state: WorkoutState): PersistedState {
   return {
@@ -151,6 +163,34 @@ export function createWorkoutStore(persist: Persist = defaultPersist) {
           ...get(),
           activeSession: { ...active, sessionExercises },
         });
+      },
+
+      updateSet: (setId, patch) => {
+        commit(
+          mapSessions(get(), (session) => ({
+            ...session,
+            sessionExercises: session.sessionExercises.map((se) => ({
+              ...se,
+              sets: se.sets.map((s) =>
+                s.id === setId ? { ...s, ...patch } : s
+              ),
+            })),
+          }))
+        );
+      },
+
+      deleteSet: (setId) => {
+        // Siblings keep their setNumber: setNumber is a logged value, not a
+        // derived index, so removal never renumbers the remaining sets.
+        commit(
+          mapSessions(get(), (session) => ({
+            ...session,
+            sessionExercises: session.sessionExercises.map((se) => ({
+              ...se,
+              sets: se.sets.filter((s) => s.id !== setId),
+            })),
+          }))
+        );
       },
 
       getLastSetFor: (exerciseId) => {

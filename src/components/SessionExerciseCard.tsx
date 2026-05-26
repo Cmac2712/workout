@@ -3,6 +3,7 @@ import { View, Text, Pressable } from "react-native";
 import { SessionExercise } from "../types";
 import { getById } from "../data/exerciseLibrary";
 import { Stepper } from "./Stepper";
+import { EditableSetRow } from "./EditableSetRow";
 
 type Props = {
   sessionExercise: SessionExercise;
@@ -12,6 +13,8 @@ type Props = {
   prefill: { reps: number; weight: number } | null;
   onLogSet: (reps: number, weight: number) => void;
   onRemove: () => void;
+  onUpdateSet: (setId: string, patch: { reps?: number; weight?: number }) => void;
+  onDeleteSet: (setId: string) => void;
 };
 
 const REP_STEP = 1;
@@ -22,6 +25,8 @@ export function SessionExerciseCard({
   prefill,
   onLogSet,
   onRemove,
+  onUpdateSet,
+  onDeleteSet,
 }: Props) {
   const [reps, setReps] = useState(prefill?.reps ?? 0);
   const [weight, setWeight] = useState(prefill?.weight ?? 0);
@@ -48,9 +53,12 @@ export function SessionExerciseCard({
       ) : (
         <View className="mb-3">
           {sessionExercise.sets.map((set) => (
-            <Text key={set.id} className="text-sm text-gray-700">
-              Set {set.setNumber}: {set.reps} reps × {set.weight} kg
-            </Text>
+            <EditableSetRow
+              key={set.id}
+              set={set}
+              onUpdate={(patch) => onUpdateSet(set.id, patch)}
+              onDelete={() => onDeleteSet(set.id)}
+            />
           ))}
         </View>
       )}

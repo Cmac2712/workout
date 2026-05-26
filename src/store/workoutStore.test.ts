@@ -335,6 +335,166 @@ describe("workoutStore", () => {
     });
   });
 
+  describe("updateSet", () => {
+    it("partially updates a set in the active session (reps only) and leaves siblings untouched", () => {
+      const store = freshStore();
+      store.getState().startSession();
+      store.getState().addExerciseToSession("bench-press");
+      const seId = store.getState().activeSession!.sessionExercises[0].id;
+      store.getState().logSet(seId, 8, 80);
+      store.getState().logSet(seId, 8, 80);
+      const [s1, s2] = store.getState().activeSession!.sessionExercises[0].sets;
+
+      store.getState().updateSet(s1.id, { reps: 10 });
+
+      const sets = store.getState().activeSession!.sessionExercises[0].sets;
+      expect(sets[0]).toEqual({ id: s1.id, setNumber: 1, reps: 10, weight: 80 });
+      expect(sets[1]).toEqual(s2);
+    });
+
+    it("updates reps and weight together in the active session", () => {
+      const store = freshStore();
+      store.getState().startSession();
+      store.getState().addExerciseToSession("bench-press");
+      const seId = store.getState().activeSession!.sessionExercises[0].id;
+      store.getState().logSet(seId, 8, 80);
+      const setId = store.getState().activeSession!.sessionExercises[0].sets[0].id;
+
+      store.getState().updateSet(setId, { reps: 6, weight: 85 });
+
+      expect(store.getState().activeSession!.sessionExercises[0].sets[0]).toEqual({
+        id: setId,
+        setNumber: 1,
+        reps: 6,
+        weight: 85,
+      });
+    });
+
+    it("updates a set in a historical session without touching siblings or other sessions", () => {
+      const store = hydrated([
+        session(1000, "bench-press", [
+          { setNumber: 1, reps: 5, weight: 100 },
+          { setNumber: 2, reps: 5, weight: 100 },
+        ]),
+        session(2000, "squat", [{ setNumber: 1, reps: 8, weight: 60 }]),
+      ]);
+
+      store.getState().updateSet("set-1000-1", { weight: 105 });
+
+      const bench = store.getState().history.find((s) => s.id === "s-1000")!;
+      expect(bench.sessionExercises[0].sets[0]).toEqual({
+        id: "set-1000-1",
+        setNumber: 1,
+        reps: 5,
+        weight: 105,
+      });
+      expect(bench.sessionExercises[0].sets[1]).toEqual({
+        id: "set-1000-2",
+        setNumber: 2,
+        reps: 5,
+        weight: 100,
+      });
+      const squat = store.getState().history.find((s) => s.id === "s-2000")!;
+      expect(squat.sessionExercises[0].sets[0]).toEqual({
+        id: "set-2000-1",
+        setNumber: 1,
+        reps: 8,
+        weight: 60,
+      });
+    });
+
+    it("persists on update", () => {
+      const saved: PersistedState[] = [];
+      const store = createWorkoutStore((s) => saved.push(s));
+      store.getState().startSession();
+      store.getState().addExerciseToSession("bench-press");
+      const seId = store.getState().activeSession!.sessionExercises[0].id;
+      store.getState().logSet(seId, 8, 80);
+      const setId = store.getState().activeSession!.sessionExercises[0].sets[0].id;
+      const before = saved.length;
+
+      store.getState().updateSet(setId, { reps: 9 });
+
+      expect(saved.length).toBe(before + 1);
+      expect(saved[saved.length - 1].activeSession!.sessionExercises[0].sets[0].reps).toBe(9);
+    });
+  });
+
+  describe("deleteSet", () => {
+    it("removes a set from the active session; siblings keep their setNumber (no renumbering)", () => {
+      const store = freshStore();
+      store.getState().startSession();
+      store.getState().addExerciseToSession("bench-press");
+      const seId = store.getState().activeSession!.sessionExercises[0].id;
+      store.getState().logSet(seId, 8, 80);
+      store.getState().logSet(seId, 8, 82.5);
+      store.getState().logSet(seId, 6, 85);
+      const sets0 = store.getState().activeSession!.sessionExercises[0].sets;
+      const middle = sets0[1];
+
+      store.getState().deleteSet(middle.id);
+
+      const sets = store.getState().activeSession!.sessionExercises[0].sets;
+      expect(sets).toHaveLength(2);
+      expect(sets.map((s) => s.setNumber)).toEqual([1, 3]);
+      expect(sets.map((s) => s.id)).toEqual([sets0[0].id, sets0[2].id]);
+    });
+
+    it("removes a set from a historical session and leaves other sessions intact", () => {
+      const store = hydrated([
+        session(1000, "bench-press", [
+          { setNumber: 1, reps: 5, weight: 100 },
+          { setNumber: 2, reps: 5, weight: 100 },
+        ]),
+        session(2000, "squat", [{ setNumber: 1, reps: 8, weight: 60 }]),
+      ]);
+
+      store.getState().deleteSet("set-1000-1");
+
+      const bench = store.getState().history.find((s) => s.id === "s-1000")!;
+      expect(bench.sessionExercises[0].sets.map((s) => s.setNumber)).toEqual([2]);
+      expect(bench.sessionExercises[0].sets[0].id).toBe("set-1000-2");
+      const squat = store.getState().history.find((s) => s.id === "s-2000")!;
+      expect(squat.sessionExercises[0].sets).toHaveLength(1);
+    });
+
+    it("deleting a historical set does not affect the active session", () => {
+      const store = hydrated([
+        session(1000, "bench-press", [{ setNumber: 1, reps: 5, weight: 100 }]),
+      ]);
+      store.getState().startSession();
+      store.getState().addExerciseToSession("squat");
+      const seId = store.getState().activeSession!.sessionExercises[0].id;
+      store.getState().logSet(seId, 5, 60);
+
+      store.getState().deleteSet("set-1000-1");
+
+      expect(
+        store.getState().activeSession!.sessionExercises[0].sets
+      ).toHaveLength(1);
+      const bench = store.getState().history.find((s) => s.id === "s-1000")!;
+      expect(bench.sessionExercises[0].sets).toHaveLength(0);
+    });
+
+    it("persists on delete", () => {
+      const saved: PersistedState[] = [];
+      const store = createWorkoutStore((s) => saved.push(s));
+      store.getState().startSession();
+      store.getState().addExerciseToSession("bench-press");
+      const seId = store.getState().activeSession!.sessionExercises[0].id;
+      store.getState().logSet(seId, 8, 80);
+      const setId = store.getState().activeSession!.sessionExercises[0].sets[0].id;
+      const before = saved.length;
+
+      store.getState().deleteSet(setId);
+
+      expect(saved.length).toBe(before + 1);
+      expect(
+        saved[saved.length - 1].activeSession!.sessionExercises[0].sets
+      ).toHaveLength(0);
+    });
+  });
+
   describe("persistence seam", () => {
     it("persists a snapshot on every mutation", () => {
       const saved: unknown[] = [];
