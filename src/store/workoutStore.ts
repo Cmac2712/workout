@@ -17,6 +17,7 @@ export type WorkoutActions = {
   startSession: () => void;
   endSession: () => void;
   addExerciseToSession: (exerciseId: string) => void;
+  removeExerciseFromSession: (sessionExerciseId: string) => void;
   logSet: (sessionExerciseId: string, reps: number, weight: number) => void;
   hydrate: (state: PersistedState) => void;
 };
@@ -96,6 +97,22 @@ export function createWorkoutStore(persist: Persist = defaultPersist) {
           activeSession: {
             ...active,
             sessionExercises: [...active.sessionExercises, sessionExercise],
+          },
+        });
+      },
+
+      removeExerciseFromSession: (sessionExerciseId) => {
+        const active = get().activeSession;
+        if (active === null) {
+          throw new Error("No active session");
+        }
+        commit({
+          ...get(),
+          activeSession: {
+            ...active,
+            sessionExercises: active.sessionExercises.filter(
+              (se) => se.id !== sessionExerciseId
+            ),
           },
         });
       },

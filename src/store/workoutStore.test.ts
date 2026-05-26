@@ -64,6 +64,38 @@ describe("workoutStore", () => {
     });
   });
 
+  describe("removeExerciseFromSession", () => {
+    it("removes the targeted exercise and all of its sets", () => {
+      const store = freshStore();
+      store.getState().startSession();
+      store.getState().addExerciseToSession("bench-press");
+      const seId = store.getState().activeSession!.sessionExercises[0].id;
+      store.getState().logSet(seId, 8, 80);
+      store.getState().logSet(seId, 8, 80);
+
+      store.getState().removeExerciseFromSession(seId);
+
+      expect(store.getState().activeSession!.sessionExercises).toEqual([]);
+    });
+
+    it("leaves sibling exercises and their sets intact", () => {
+      const store = freshStore();
+      store.getState().startSession();
+      store.getState().addExerciseToSession("bench-press");
+      store.getState().addExerciseToSession("squat");
+      const [se1, se2] = store.getState().activeSession!.sessionExercises;
+      store.getState().logSet(se2.id, 5, 100);
+
+      store.getState().removeExerciseFromSession(se1.id);
+
+      const remaining = store.getState().activeSession!.sessionExercises;
+      expect(remaining).toHaveLength(1);
+      expect(remaining[0].id).toBe(se2.id);
+      expect(remaining[0].exerciseId).toBe("squat");
+      expect(remaining[0].sets).toHaveLength(1);
+    });
+  });
+
   describe("logSet", () => {
     it("assigns sequential setNumber per session exercise", () => {
       const store = freshStore();

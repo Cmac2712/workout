@@ -7,12 +7,13 @@ import { Stepper } from "./Stepper";
 type Props = {
   sessionExercise: SessionExercise;
   onLogSet: (reps: number, weight: number) => void;
+  onRemove: () => void;
 };
 
 const REP_STEP = 1;
 const WEIGHT_STEP = 2.5;
 
-export function SessionExerciseCard({ sessionExercise, onLogSet }: Props) {
+export function SessionExerciseCard({ sessionExercise, onLogSet, onRemove }: Props) {
   const [reps, setReps] = useState(8);
   const [weight, setWeight] = useState(20);
 
@@ -21,7 +22,17 @@ export function SessionExerciseCard({ sessionExercise, onLogSet }: Props) {
 
   return (
     <View className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
-      <Text className="text-lg font-bold text-gray-900 mb-2">{name}</Text>
+      <View className="flex-row items-center justify-between mb-2">
+        <Text className="text-lg font-bold text-gray-900 flex-1 pr-2">{name}</Text>
+        <Pressable
+          onPress={onRemove}
+          accessibilityLabel={`Remove ${name}`}
+          hitSlop={8}
+          className="px-2 py-1"
+        >
+          <Text className="text-sm font-semibold text-red-600">Remove</Text>
+        </Pressable>
+      </View>
 
       {sessionExercise.sets.length === 0 ? (
         <Text className="text-sm text-gray-400 mb-3">No sets logged yet</Text>

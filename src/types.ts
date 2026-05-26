@@ -26,5 +26,3 @@ export type PersistedState = {
   activeSession: Session | null;
   history: Session[]; // ended sessions, newest-last for append efficiency
 };
-
-export const PLACEHOLDER_EXERCISE_ID = "placeholder";

@@ -1,10 +1,15 @@
 import { View, Text, Pressable, ScrollView } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useWorkoutStore, workoutStore } from "../store/workoutStore";
-import { PLACEHOLDER_EXERCISE_ID } from "../types";
 import { SessionExerciseCard } from "../components/SessionExerciseCard";
+import type { WorkoutStackParamList } from "../navigation/RootNavigator";
+
+type Nav = NativeStackNavigationProp<WorkoutStackParamList, "WorkoutHome">;
 
 export function WorkoutScreen() {
   const activeSession = useWorkoutStore((s) => s.activeSession);
+  const navigation = useNavigation<Nav>();
 
   if (activeSession === null) {
     return <IdleView />;
@@ -19,6 +24,12 @@ export function WorkoutScreen() {
         Active Workout
       </Text>
 
+      {activeSession.sessionExercises.length === 0 && (
+        <Text className="text-sm text-gray-400 mb-4">
+          No exercises yet — tap “Add Exercise” to get started.
+        </Text>
+      )}
+
       {activeSession.sessionExercises.map((se) => (
         <SessionExerciseCard
           key={se.id}
@@ -26,12 +37,22 @@ export function WorkoutScreen() {
           onLogSet={(reps, weight) =>
             workoutStore.getState().logSet(se.id, reps, weight)
           }
+          onRemove={() =>
+            workoutStore.getState().removeExerciseFromSession(se.id)
+          }
         />
       ))}
 
       <Pressable
+        onPress={() => navigation.navigate("ExercisePicker")}
+        className="bg-blue-600 rounded-xl py-4 items-center mt-2"
+      >
+        <Text className="text-white font-bold text-base">Add Exercise</Text>
+      </Pressable>
+
+      <Pressable
         onPress={() => workoutStore.getState().endSession()}
-        className="bg-red-600 rounded-xl py-4 items-center mt-2"
+        className="bg-red-600 rounded-xl py-4 items-center mt-3"
       >
         <Text className="text-white font-bold text-base">End Workout</Text>
       </Pressable>
@@ -41,11 +62,9 @@ export function WorkoutScreen() {
 
 function IdleView() {
   const onStart = () => {
-    // Two store dispatches: create the session, then seed it with the
-    // hardcoded placeholder exercise (replaced by a picker in Slice 2).
-    const store = workoutStore.getState();
-    store.startSession();
-    store.addExerciseToSession(PLACEHOLDER_EXERCISE_ID);
+    // A freshly started session is empty; the user picks exercises via the
+    // Add Exercise modal.
+    workoutStore.getState().startSession();
   };
 
   return (
