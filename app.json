@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Workout",
+    "slug": "workout",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "android": {
+      "package": "com.workout.app"
+    },
+    "plugins": ["expo-status-bar"],
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
