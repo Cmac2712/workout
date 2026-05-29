@@ -1,5 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { PersistedState, SCHEMA_VERSION } from "../types";
+import {
+  DEFAULT_REST_DURATION_MS,
+  PersistedState,
+  SCHEMA_VERSION,
+} from "../types";
 
 export const STORAGE_KEY = "workout/state/v1";
 
@@ -22,7 +26,15 @@ export async function loadState(): Promise<PersistedState | null> {
 
   if (!isPersistedState(parsed)) return null;
 
-  return parsed;
+  // restDurationMs was added after the initial schema; default it for blobs
+  // written before the rest timer existed (no version bump needed).
+  return {
+    ...parsed,
+    restDurationMs:
+      typeof parsed.restDurationMs === "number"
+        ? parsed.restDurationMs
+        : DEFAULT_REST_DURATION_MS,
+  };
 }
 
 export async function saveState(state: PersistedState): Promise<void> {

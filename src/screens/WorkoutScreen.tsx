@@ -3,6 +3,7 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useWorkoutStore, workoutStore } from "../store/workoutStore";
 import { SessionExerciseCard } from "../components/SessionExerciseCard";
+import { RestTimerBar } from "../components/RestTimerBar";
 import type { WorkoutStackParamList } from "../navigation/RootNavigator";
 
 type Nav = NativeStackNavigationProp<WorkoutStackParamList, "WorkoutHome">;
@@ -23,6 +24,8 @@ export function WorkoutScreen() {
       <Text className="text-2xl font-bold text-gray-900 mb-4">
         Active Workout
       </Text>
+
+      <RestTimerBar />
 
       {activeSession.sessionExercises.length === 0 && (
         <Text className="text-sm text-gray-400 mb-4">

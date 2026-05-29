@@ -25,24 +25,28 @@ const emptyState: PersistedState = {
   schemaVersion: 1,
   activeSession: null,
   history: [],
+  restDurationMs: 120_000,
 };
 
 const oneSessionState: PersistedState = {
   schemaVersion: 1,
   activeSession: null,
   history: [makeSession("a", true)],
+  restDurationMs: 90_000,
 };
 
 const manySessionsState: PersistedState = {
   schemaVersion: 1,
   activeSession: null,
   history: [makeSession("a", true), makeSession("b", true), makeSession("c", true)],
+  restDurationMs: 180_000,
 };
 
 const activeSessionState: PersistedState = {
   schemaVersion: 1,
   activeSession: makeSession("active", false),
   history: [makeSession("a", true)],
+  restDurationMs: 120_000,
 };
 
 beforeEach(async () => {
@@ -83,5 +87,14 @@ describe("persistence", () => {
       JSON.stringify({ schemaVersion: 99, activeSession: null, history: [] })
     );
     expect(await loadState()).toBeNull();
+  });
+
+  it("defaults restDurationMs for blobs written before the rest timer existed", async () => {
+    await AsyncStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ schemaVersion: 1, activeSession: null, history: [] })
+    );
+    const loaded = await loadState();
+    expect(loaded?.restDurationMs).toBe(120_000);
   });
 });
