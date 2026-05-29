@@ -46,9 +46,6 @@ export function RestTimerBar() {
   }, [expired]);
 
   const remaining = restRemainingMs(timer, now);
-  const running = timer.status === "running";
-  const paused = timer.status === "paused";
-
   const store = workoutStore.getState();
 
   const adjust = (delta: number) => {
@@ -105,15 +102,14 @@ export function RestTimerBar() {
       </Text>
 
       <View className="flex-row justify-center">
-        {running ? (
+        {timer.status === "running" && (
           <TimerButton label="Pause" onPress={() => store.pauseRestTimer()} />
-        ) : (
-          <TimerButton
-            label={paused ? "Resume" : "Start"}
-            onPress={() =>
-              paused ? store.resumeRestTimer() : store.startRestTimer()
-            }
-          />
+        )}
+        {timer.status === "paused" && (
+          <TimerButton label="Resume" onPress={() => store.resumeRestTimer()} />
+        )}
+        {timer.status === "idle" && (
+          <TimerButton label="Start" onPress={() => store.startRestTimer()} />
         )}
         <TimerButton label="Reset" onPress={() => store.resetRestTimer()} />
       </View>
