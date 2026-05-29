@@ -42,7 +42,7 @@ export function ExerciseHistoryScreen() {
       {topSetWeights.length === 0 ? (
         <Text className="text-base text-muted mb-4">No sets logged yet</Text>
       ) : (
-        <View className="bg-card border border-subtle rounded-2xl p-4 mb-4">
+        <View className="bg-card border border-subtle rounded-surface p-4 mb-4">
           <Text className="text-xs font-semibold text-muted mb-2">
             Top-set weight (last {topSetWeights.length})
           </Text>
@@ -55,7 +55,7 @@ export function ExerciseHistoryScreen() {
       )}
 
       {sessions.map((session) => (
-        <View key={session.id} className="bg-card border border-subtle rounded-2xl p-4 mb-3">
+        <View key={session.id} className="bg-card border border-subtle rounded-surface p-4 mb-3">
           <Text className="text-base font-bold text-primary mb-2">
             {formatSessionDate(session.startedAt)}
           </Text>

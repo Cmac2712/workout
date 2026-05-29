@@ -37,7 +37,7 @@ export function SessionExerciseCard({
     getById(sessionExercise.exerciseId)?.name ?? sessionExercise.exerciseId;
 
   return (
-    <View className="bg-card border border-subtle rounded-2xl p-4 mb-4">
+    <View className="bg-card border border-subtle rounded-surface p-4 mb-4">
       <View className="flex-row items-center justify-between mb-2">
         <Pressable
           onPress={onOpenHistory}
@@ -87,7 +87,7 @@ export function SessionExerciseCard({
 
       <Pressable
         onPress={() => onLogSet(reps, weight)}
-        className="bg-primary-accent rounded-xl py-3 items-center"
+        className="bg-primary-accent rounded-control py-3 items-center"
       >
         <Text className="text-on-accent font-semibold">Log Set</Text>
       </Pressable>

@@ -58,7 +58,7 @@ export function RestTimerBar() {
 
   return (
     <View
-      className={`rounded-2xl p-4 mb-4 ${
+      className={`rounded-surface p-4 mb-4 ${
         expired ? "bg-success" : "bg-card-elevated"
       }`}
       accessibilityLabel="Rest timer"
@@ -127,7 +127,7 @@ function TimerButton({
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white/20 rounded-xl px-6 py-2 mx-2"
+      className="bg-white/20 rounded-control px-6 py-2 mx-2"
       accessibilityLabel={label}
     >
       <Text className="text-white font-semibold">{label}</Text>

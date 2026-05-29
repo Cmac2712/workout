@@ -36,7 +36,7 @@ export function HistoryScreen() {
           onPress={() =>
             navigation.navigate("SessionDetail", { sessionId: item.id })
           }
-          className="bg-card border border-subtle rounded-2xl p-4 mb-3"
+          className="bg-card border border-subtle rounded-surface p-4 mb-3"
         >
           <Text className="text-lg font-bold text-primary">
             {formatSessionDate(item.startedAt)}

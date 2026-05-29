@@ -46,7 +46,7 @@ export function SessionDetailScreen() {
       {exercises.map((se) => {
         const name = getById(se.exerciseId)?.name ?? se.exerciseId;
         return (
-          <View key={se.id} className="bg-card border border-subtle rounded-2xl p-4 mb-3">
+          <View key={se.id} className="bg-card border border-subtle rounded-surface p-4 mb-3">
             <Pressable
               onPress={() =>
                 navigation.navigate("ExerciseHistory", {

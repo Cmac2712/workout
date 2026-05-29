@@ -23,6 +23,15 @@ export const colors = {
   "on-accent": "#ffffff",
 } as const;
 
+// Corner-radius tokens. `surface` for cards and surface-like containers,
+// `control` for action buttons — both deliberately tight for a crisp,
+// functional feel. Circular controls use rounded-full directly (not a token):
+// their roundness is an affordance, not a surface radius.
+export const radius = {
+  surface: 6,
+  control: 2,
+} as const;
+
 const fonts: Theme["fonts"] = {
   regular: { fontFamily: "sans-serif", fontWeight: "normal" },
   medium: { fontFamily: "sans-serif-medium", fontWeight: "normal" },

@@ -1,4 +1,11 @@
-import { colors, navigationTheme } from "./theme";
+import { colors, navigationTheme, radius } from "./theme";
+
+describe("theme radius", () => {
+  it("defines the surface and control corner-radius tokens", () => {
+    expect(radius.surface).toBe(6);
+    expect(radius.control).toBe(2);
+  });
+});
 
 describe("theme colors", () => {
   it("defines the zinc-based semantic palette", () => {

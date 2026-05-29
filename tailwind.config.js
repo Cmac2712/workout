@@ -1,4 +1,4 @@
-const { colors } = require("./src/theme");
+const { colors, radius } = require("./src/theme");
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -7,6 +7,10 @@ module.exports = {
   theme: {
     extend: {
       colors,
+      borderRadius: {
+        surface: radius.surface,
+        control: radius.control,
+      },
     },
   },
   plugins: [],

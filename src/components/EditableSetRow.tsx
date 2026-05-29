@@ -33,7 +33,7 @@ export function EditableSetRow({ set, onUpdate, onDelete }: Props) {
 
   if (editing) {
     return (
-      <View className="bg-card-elevated rounded-xl p-3 my-1">
+      <View className="bg-card-elevated rounded-surface p-3 my-1">
         <Text className="text-xs text-muted mb-2">Set {set.setNumber}</Text>
         <View className="flex-row justify-around items-end mb-3">
           <Stepper
@@ -57,7 +57,7 @@ export function EditableSetRow({ set, onUpdate, onDelete }: Props) {
           <Pressable onPress={() => setEditing(false)} hitSlop={8} className="px-3 py-2 mr-2">
             <Text className="text-muted font-semibold">Cancel</Text>
           </Pressable>
-          <Pressable onPress={save} className="bg-primary-accent rounded-lg px-4 py-2">
+          <Pressable onPress={save} className="bg-primary-accent rounded-control px-4 py-2">
             <Text className="text-on-accent font-semibold">Save</Text>
           </Pressable>
         </View>

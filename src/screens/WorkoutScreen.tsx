@@ -56,14 +56,14 @@ export function WorkoutScreen() {
 
       <Pressable
         onPress={() => navigation.navigate("ExercisePicker")}
-        className="bg-primary-accent rounded-xl py-4 items-center mt-2"
+        className="bg-primary-accent rounded-control py-4 items-center mt-2"
       >
         <Text className="text-on-accent font-bold text-base">Add Exercise</Text>
       </Pressable>
 
       <Pressable
         onPress={() => workoutStore.getState().endSession()}
-        className="bg-danger rounded-xl py-4 items-center mt-3"
+        className="bg-danger rounded-control py-4 items-center mt-3"
       >
         <Text className="text-on-accent font-bold text-base">End Workout</Text>
       </Pressable>
@@ -82,7 +82,7 @@ function IdleView() {
     <View className="flex-1 bg-page items-center justify-center p-6">
       <Pressable
         onPress={onStart}
-        className="bg-primary-accent rounded-2xl px-10 py-6"
+        className="bg-primary-accent rounded-surface px-10 py-6"
       >
         <Text className="text-on-accent font-bold text-xl">Start Workout</Text>
       </Pressable>
