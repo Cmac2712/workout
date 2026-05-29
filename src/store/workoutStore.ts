@@ -1,6 +1,7 @@
 import { createStore } from "zustand/vanilla";
 import { useStore } from "zustand";
 import {
+  DEFAULT_REST_DURATION_MS,
   PersistedState,
   SCHEMA_VERSION,
   Session,
@@ -9,6 +10,13 @@ import {
 } from "../types";
 import { genId } from "../util/id";
 import { saveState } from "../persistence/persistence";
+import {
+  RestTimer,
+  startRest,
+  pauseRest,
+  resumeRest,
+  resetRest,
+} from "../util/restTimer";
 
 type Persist = (state: PersistedState) => void;
 
@@ -56,15 +64,23 @@ export type WorkoutActions = {
   getLastSetFor: (exerciseId: string) => { reps: number; weight: number } | null;
   getSessionsList: () => SessionSummary[];
   getHistoryFor: (exerciseId: string) => ExerciseHistory;
+  setRestDuration: (durationMs: number) => void;
+  startRestTimer: (now?: number) => void;
+  pauseRestTimer: (now?: number) => void;
+  resumeRestTimer: (now?: number) => void;
+  resetRestTimer: (now?: number) => void;
   hydrate: (state: PersistedState) => void;
 };
 
-export type WorkoutStore = WorkoutState & WorkoutActions;
+// restTimer is ephemeral (in-session) state: it is NOT persisted, so it is kept
+// outside PersistedState and excluded from snapshot().
+export type WorkoutStore = WorkoutState & { restTimer: RestTimer } & WorkoutActions;
 
 export const initialState: WorkoutState = {
   schemaVersion: SCHEMA_VERSION,
   activeSession: null,
   history: [],
+  restDurationMs: DEFAULT_REST_DURATION_MS,
 };
 
 // Apply fn to every session (active + history). Set edit/delete intentionally
@@ -104,6 +120,7 @@ function snapshot(state: WorkoutState): PersistedState {
     schemaVersion: state.schemaVersion,
     activeSession: state.activeSession,
     history: state.history,
+    restDurationMs: state.restDurationMs,
   };
 }
 
@@ -123,6 +140,7 @@ export function createWorkoutStore(persist: Persist = defaultPersist) {
 
     return {
       ...initialState,
+      restTimer: { status: "idle", durationMs: initialState.restDurationMs },
 
       startSession: () => {
         if (get().activeSession !== null) {
@@ -210,6 +228,9 @@ export function createWorkoutStore(persist: Persist = defaultPersist) {
           ...get(),
           activeSession: { ...active, sessionExercises },
         });
+        // Logging a set auto-starts the rest countdown so the user never has to
+        // remember to tap "start" while catching their breath.
+        set({ restTimer: startRest(get().restDurationMs, Date.now()) });
       },
 
       updateSet: (setId, patch) => {
@@ -297,8 +318,38 @@ export function createWorkoutStore(persist: Persist = defaultPersist) {
         return { sessions, topSetWeights };
       },
 
+      setRestDuration: (durationMs) => {
+        // Persist the new default and reflect it in an idle timer so the next
+        // countdown uses it. A running/paused countdown is left untouched.
+        commit({ ...get(), restDurationMs: durationMs });
+        if (get().restTimer.status === "idle") {
+          set({ restTimer: { status: "idle", durationMs } });
+        }
+      },
+
+      startRestTimer: (now = Date.now()) => {
+        set({ restTimer: startRest(get().restDurationMs, now) });
+      },
+
+      pauseRestTimer: (now = Date.now()) => {
+        set({ restTimer: pauseRest(get().restTimer, now) });
+      },
+
+      resumeRestTimer: (now = Date.now()) => {
+        set({ restTimer: resumeRest(get().restTimer, now) });
+      },
+
+      resetRestTimer: (now = Date.now()) => {
+        set({ restTimer: resetRest(get().restTimer, now) });
+      },
+
       hydrate: (state) => {
-        set({ ...get(), ...state });
+        // Adopt the persisted rest-duration default into the idle timer too.
+        set({
+          ...get(),
+          ...state,
+          restTimer: { status: "idle", durationMs: state.restDurationMs },
+        });
       },
     };
   });

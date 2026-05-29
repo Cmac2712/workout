@@ -28,3 +28,12 @@ export function formatDuration(ms: number): string {
   const minutes = totalMinutes % 60;
   return hours === 0 ? `${minutes}m` : `${hours}h ${minutes}m`;
 }
+
+// "2:00" / "1:05" / "0:05" — rest-timer countdown clock. Seconds round up so a
+// timer with any time left never reads 0:00 (that's reserved for expiry).
+export function formatRestClock(ms: number): string {
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}

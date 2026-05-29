@@ -33,6 +33,7 @@ function hydrated(history: Session[]): StoreApi<WorkoutStore> {
     schemaVersion: SCHEMA_VERSION,
     activeSession: null,
     history,
+    restDurationMs: 120_000,
   };
   store.getState().hydrate(state);
   return store;
@@ -643,6 +644,104 @@ describe("workoutStore", () => {
       store.getState().addExerciseToSession("bench-press");
       expect(saved).toHaveLength(2);
       expect(saved[saved.length - 1]).toMatchObject({ schemaVersion: 1 });
+    });
+
+    it("includes restDurationMs in the persisted snapshot", () => {
+      const saved: PersistedState[] = [];
+      const store = createWorkoutStore((state) => saved.push(state));
+      store.getState().setRestDuration(90_000);
+      expect(saved[saved.length - 1].restDurationMs).toBe(90_000);
+    });
+  });
+
+  describe("rest timer", () => {
+    function activeStore(): StoreApi<WorkoutStore> {
+      const store = freshStore();
+      store.getState().startSession();
+      store.getState().addExerciseToSession("bench-press");
+      return store;
+    }
+
+    it("starts idle at the configured default duration", () => {
+      const store = freshStore();
+      expect(store.getState().restTimer).toEqual({
+        status: "idle",
+        durationMs: 120_000,
+      });
+    });
+
+    it("auto-starts a running countdown when a set is logged", () => {
+      const store = activeStore();
+      const seId = store.getState().activeSession!.sessionExercises[0].id;
+      store.getState().logSet(seId, 5, 100);
+      const t = store.getState().restTimer;
+      expect(t.status).toBe("running");
+      expect(t.durationMs).toBe(120_000);
+    });
+
+    it("pauses, resumes, and resets under user control", () => {
+      const store = activeStore();
+      store.getState().startRestTimer(1_000);
+      store.getState().pauseRestTimer(31_000);
+      expect(store.getState().restTimer).toEqual({
+        status: "paused",
+        remainingMs: 90_000,
+        durationMs: 120_000,
+      });
+
+      store.getState().resumeRestTimer(50_000);
+      expect(store.getState().restTimer).toEqual({
+        status: "running",
+        endsAt: 140_000,
+        durationMs: 120_000,
+      });
+
+      store.getState().resetRestTimer(200_000);
+      expect(store.getState().restTimer).toEqual({
+        status: "running",
+        endsAt: 320_000,
+        durationMs: 120_000,
+      });
+    });
+
+    it("setRestDuration persists the default and updates an idle timer", () => {
+      const store = freshStore();
+      store.getState().setRestDuration(90_000);
+      expect(store.getState().restDurationMs).toBe(90_000);
+      expect(store.getState().restTimer).toEqual({
+        status: "idle",
+        durationMs: 90_000,
+      });
+    });
+
+    it("setRestDuration does not disturb a running countdown", () => {
+      const store = activeStore();
+      store.getState().startRestTimer(1_000);
+      store.getState().setRestDuration(90_000);
+      expect(store.getState().restTimer).toEqual({
+        status: "running",
+        endsAt: 121_000,
+        durationMs: 120_000,
+      });
+      // the new default still takes effect on the next auto-start
+      const seId = store.getState().activeSession!.sessionExercises[0].id;
+      store.getState().logSet(seId, 5, 100);
+      expect(store.getState().restTimer.durationMs).toBe(90_000);
+    });
+
+    it("hydrate adopts the persisted rest duration into the idle timer", () => {
+      const store = freshStore();
+      store.getState().hydrate({
+        schemaVersion: SCHEMA_VERSION,
+        activeSession: null,
+        history: [],
+        restDurationMs: 75_000,
+      });
+      expect(store.getState().restDurationMs).toBe(75_000);
+      expect(store.getState().restTimer).toEqual({
+        status: "idle",
+        durationMs: 75_000,
+      });
     });
   });
 });
