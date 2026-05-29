@@ -18,17 +18,17 @@ export function WorkoutScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-gray-100"
+      className="flex-1 bg-page"
       contentContainerClassName="p-4"
     >
-      <Text className="text-2xl font-bold text-gray-900 mb-4">
+      <Text className="text-2xl font-bold text-primary mb-4">
         Active Workout
       </Text>
 
       <RestTimerBar />
 
       {activeSession.sessionExercises.length === 0 && (
-        <Text className="text-sm text-gray-400 mb-4">
+        <Text className="text-sm text-muted mb-4">
           No exercises yet — tap “Add Exercise” to get started.
         </Text>
       )}
@@ -56,16 +56,16 @@ export function WorkoutScreen() {
 
       <Pressable
         onPress={() => navigation.navigate("ExercisePicker")}
-        className="bg-blue-600 rounded-xl py-4 items-center mt-2"
+        className="bg-primary-accent rounded-xl py-4 items-center mt-2"
       >
-        <Text className="text-white font-bold text-base">Add Exercise</Text>
+        <Text className="text-on-accent font-bold text-base">Add Exercise</Text>
       </Pressable>
 
       <Pressable
         onPress={() => workoutStore.getState().endSession()}
-        className="bg-red-600 rounded-xl py-4 items-center mt-3"
+        className="bg-danger rounded-xl py-4 items-center mt-3"
       >
-        <Text className="text-white font-bold text-base">End Workout</Text>
+        <Text className="text-on-accent font-bold text-base">End Workout</Text>
       </Pressable>
     </ScrollView>
   );
@@ -79,12 +79,12 @@ function IdleView() {
   };
 
   return (
-    <View className="flex-1 bg-gray-100 items-center justify-center p-6">
+    <View className="flex-1 bg-page items-center justify-center p-6">
       <Pressable
         onPress={onStart}
-        className="bg-blue-600 rounded-2xl px-10 py-6"
+        className="bg-primary-accent rounded-2xl px-10 py-6"
       >
-        <Text className="text-white font-bold text-xl">Start Workout</Text>
+        <Text className="text-on-accent font-bold text-xl">Start Workout</Text>
       </Pressable>
     </View>
   );

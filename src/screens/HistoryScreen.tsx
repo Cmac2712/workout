@@ -19,15 +19,15 @@ export function HistoryScreen() {
 
   if (sessions.length === 0) {
     return (
-      <View className="flex-1 bg-gray-100 items-center justify-center p-6">
-        <Text className="text-lg text-gray-500">No workouts yet</Text>
+      <View className="flex-1 bg-page items-center justify-center p-6">
+        <Text className="text-lg text-muted">No workouts yet</Text>
       </View>
     );
   }
 
   return (
     <FlatList
-      className="flex-1 bg-gray-100"
+      className="flex-1 bg-page"
       contentContainerClassName="p-4"
       data={sessions}
       keyExtractor={(s) => s.id}
@@ -36,12 +36,12 @@ export function HistoryScreen() {
           onPress={() =>
             navigation.navigate("SessionDetail", { sessionId: item.id })
           }
-          className="bg-white rounded-2xl p-4 mb-3 shadow-sm"
+          className="bg-card border border-subtle rounded-2xl p-4 mb-3"
         >
-          <Text className="text-lg font-bold text-gray-900">
+          <Text className="text-lg font-bold text-primary">
             {formatSessionDate(item.startedAt)}
           </Text>
-          <Text className="text-sm text-gray-500 mt-1">
+          <Text className="text-sm text-muted mt-1">
             {item.exerciseCount}{" "}
             {item.exerciseCount === 1 ? "exercise" : "exercises"} ·{" "}
             {formatDuration(item.durationMs)}

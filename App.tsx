@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { workoutStore } from "./src/store/workoutStore";
 import { loadState } from "./src/persistence/persistence";
+import { navigationTheme } from "./src/theme";
 import "./global.css";
 
 export default function App() {
@@ -28,8 +29,10 @@ export default function App() {
 
   if (!hydrated) {
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <Text>Loading…</Text>
+      <View
+        className="flex-1 bg-page items-center justify-center"
+      >
+        <Text className="text-primary">Loading…</Text>
       </View>
     );
   }
@@ -37,9 +40,9 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <NavigationContainer>
+        <NavigationContainer theme={navigationTheme}>
           <RootNavigator />
-          <StatusBar style="auto" />
+          <StatusBar style="light" />
         </NavigationContainer>
       </SafeAreaProvider>
     </GestureHandlerRootView>

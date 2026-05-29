@@ -33,8 +33,8 @@ export function EditableSetRow({ set, onUpdate, onDelete }: Props) {
 
   if (editing) {
     return (
-      <View className="bg-gray-50 rounded-xl p-3 my-1">
-        <Text className="text-xs text-gray-500 mb-2">Set {set.setNumber}</Text>
+      <View className="bg-card-elevated rounded-xl p-3 my-1">
+        <Text className="text-xs text-muted mb-2">Set {set.setNumber}</Text>
         <View className="flex-row justify-around items-end mb-3">
           <Stepper
             label="Reps"
@@ -55,10 +55,10 @@ export function EditableSetRow({ set, onUpdate, onDelete }: Props) {
         </View>
         <View className="flex-row justify-end items-center">
           <Pressable onPress={() => setEditing(false)} hitSlop={8} className="px-3 py-2 mr-2">
-            <Text className="text-gray-500 font-semibold">Cancel</Text>
+            <Text className="text-muted font-semibold">Cancel</Text>
           </Pressable>
-          <Pressable onPress={save} className="bg-blue-600 rounded-lg px-4 py-2">
-            <Text className="text-white font-semibold">Save</Text>
+          <Pressable onPress={save} className="bg-primary-accent rounded-lg px-4 py-2">
+            <Text className="text-on-accent font-semibold">Save</Text>
           </Pressable>
         </View>
       </View>
@@ -73,7 +73,7 @@ export function EditableSetRow({ set, onUpdate, onDelete }: Props) {
         accessibilityLabel={`Edit set ${set.setNumber}`}
         className="flex-1"
       >
-        <Text className="text-sm text-gray-700">
+        <Text className="text-sm text-secondary">
           Set {set.setNumber}: {set.reps} reps × {set.weight} kg
         </Text>
       </Pressable>
@@ -83,7 +83,7 @@ export function EditableSetRow({ set, onUpdate, onDelete }: Props) {
         accessibilityLabel={`Delete set ${set.setNumber}`}
         className="px-2"
       >
-        <Text className="text-red-600 font-bold">✕</Text>
+        <Text className="text-danger-accent-text font-bold">✕</Text>
       </Pressable>
     </View>
   );

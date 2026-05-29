@@ -31,19 +31,19 @@ export function ExerciseHistoryScreen() {
   const sparkWidth = Dimensions.get("window").width - 32;
 
   return (
-    <ScrollView className="flex-1 bg-gray-100" contentContainerClassName="p-4">
-      <Text className="text-2xl font-bold text-gray-900">{name}</Text>
+    <ScrollView className="flex-1 bg-page" contentContainerClassName="p-4">
+      <Text className="text-2xl font-bold text-primary">{name}</Text>
       {exercise && (
-        <Text className="text-sm text-gray-500 capitalize mb-4">
+        <Text className="text-sm text-muted capitalize mb-4">
           {exercise.muscleGroup}
         </Text>
       )}
 
       {topSetWeights.length === 0 ? (
-        <Text className="text-base text-gray-400 mb-4">No sets logged yet</Text>
+        <Text className="text-base text-muted mb-4">No sets logged yet</Text>
       ) : (
-        <View className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
-          <Text className="text-xs font-semibold text-gray-500 mb-2">
+        <View className="bg-card border border-subtle rounded-2xl p-4 mb-4">
+          <Text className="text-xs font-semibold text-muted mb-2">
             Top-set weight (last {topSetWeights.length})
           </Text>
           <Sparkline
@@ -55,12 +55,12 @@ export function ExerciseHistoryScreen() {
       )}
 
       {sessions.map((session) => (
-        <View key={session.id} className="bg-white rounded-2xl p-4 mb-3 shadow-sm">
-          <Text className="text-base font-bold text-gray-900 mb-2">
+        <View key={session.id} className="bg-card border border-subtle rounded-2xl p-4 mb-3">
+          <Text className="text-base font-bold text-primary mb-2">
             {formatSessionDate(session.startedAt)}
           </Text>
           {session.sets.map((set, i) => (
-            <Text key={i} className="text-sm text-gray-700 py-0.5">
+            <Text key={i} className="text-sm text-secondary py-0.5">
               Set {set.setNumber}: {set.reps} reps × {set.weight} kg
             </Text>
           ))}

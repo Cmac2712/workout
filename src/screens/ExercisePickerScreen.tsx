@@ -38,26 +38,26 @@ export function ExercisePickerScreen() {
 
   return (
     <SectionList
-      className="flex-1 bg-gray-100"
+      className="flex-1 bg-page"
       sections={sections}
       keyExtractor={(item) => item.id}
       stickySectionHeadersEnabled
       renderSectionHeader={({ section }) => (
-        <Text className="px-4 py-2 bg-gray-200 text-xs font-bold uppercase text-gray-500">
+        <Text className="px-4 py-2 bg-card-elevated text-xs font-bold uppercase text-muted">
           {GROUP_LABELS[section.title]}
         </Text>
       )}
       renderItem={({ item }) => (
         <Pressable
           onPress={() => pick(item.id)}
-          className="px-4 py-4 bg-white border-b border-gray-100"
+          className="px-4 py-4 bg-card border-b border-subtle"
         >
-          <Text className="text-base text-gray-900">{item.name}</Text>
+          <Text className="text-base text-primary">{item.name}</Text>
         </Pressable>
       )}
       ListEmptyComponent={
         <View className="p-6 items-center">
-          <Text className="text-gray-400">No exercises</Text>
+          <Text className="text-muted">No exercises</Text>
         </View>
       }
     />

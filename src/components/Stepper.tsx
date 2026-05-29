@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, Text, Pressable, TextInput } from "react-native";
 import { parseNumericInput } from "../util/parseNumericInput";
+import { colors } from "../theme";
 
 type Props = {
   label: string;
@@ -40,14 +41,14 @@ export function Stepper({
 
   return (
     <View className="items-center">
-      <Text className="text-xs text-gray-500 mb-1">{label}</Text>
+      <Text className="text-xs text-muted mb-1">{label}</Text>
       <View className="flex-row items-center">
         <Pressable
           onPress={dec}
           accessibilityLabel={`Decrease ${label}`}
-          className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center"
+          className="w-10 h-10 rounded-full bg-card-elevated items-center justify-center"
         >
-          <Text className="text-xl font-bold text-gray-800">−</Text>
+          <Text className="text-xl font-bold text-primary">−</Text>
         </Pressable>
         <TextInput
           value={draft ?? formatValue(value)}
@@ -56,21 +57,24 @@ export function Stepper({
           onEndEditing={commit}
           onSubmitEditing={commit}
           keyboardType={decimal ? "decimal-pad" : "number-pad"}
+          keyboardAppearance="dark"
+          placeholderTextColor={colors.muted}
           selectTextOnFocus
           accessibilityLabel={`${label} value, tap to type`}
-          className="mx-3 text-lg font-semibold text-gray-900 min-w-16 text-center"
+          style={{ color: colors.primary }}
+          className="mx-3 text-lg font-semibold text-primary min-w-16 text-center"
         />
         {unit ? (
-          <Text className="text-lg font-semibold text-gray-900 -ml-2 mr-1">
+          <Text className="text-lg font-semibold text-primary -ml-2 mr-1">
             {unit}
           </Text>
         ) : null}
         <Pressable
           onPress={inc}
           accessibilityLabel={`Increase ${label}`}
-          className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center"
+          className="w-10 h-10 rounded-full bg-card-elevated items-center justify-center"
         >
-          <Text className="text-xl font-bold text-gray-800">+</Text>
+          <Text className="text-xl font-bold text-primary">+</Text>
         </Pressable>
       </View>
     </View>

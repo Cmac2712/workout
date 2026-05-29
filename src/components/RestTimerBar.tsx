@@ -59,14 +59,14 @@ export function RestTimerBar() {
   return (
     <View
       className={`rounded-2xl p-4 mb-4 ${
-        expired ? "bg-green-600" : "bg-gray-800"
+        expired ? "bg-success" : "bg-card-elevated"
       }`}
       accessibilityLabel="Rest timer"
     >
       <View className="flex-row items-center justify-between">
         <Text
           className={`text-xs font-semibold ${
-            expired ? "text-green-100" : "text-gray-400"
+            expired ? "text-green-100" : "text-muted"
           }`}
         >
           REST

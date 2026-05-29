@@ -37,7 +37,7 @@ export function SessionExerciseCard({
     getById(sessionExercise.exerciseId)?.name ?? sessionExercise.exerciseId;
 
   return (
-    <View className="bg-white rounded-2xl p-4 mb-4 shadow-sm">
+    <View className="bg-card border border-subtle rounded-2xl p-4 mb-4">
       <View className="flex-row items-center justify-between mb-2">
         <Pressable
           onPress={onOpenHistory}
@@ -45,7 +45,7 @@ export function SessionExerciseCard({
           accessibilityLabel={`View ${name} history`}
           className="flex-1 pr-2"
         >
-          <Text className="text-lg font-bold text-blue-600">{name}</Text>
+          <Text className="text-lg font-bold text-primary-accent-text">{name}</Text>
         </Pressable>
         <Pressable
           onPress={onRemove}
@@ -53,12 +53,12 @@ export function SessionExerciseCard({
           hitSlop={8}
           className="px-2 py-1"
         >
-          <Text className="text-sm font-semibold text-red-600">Remove</Text>
+          <Text className="text-sm font-semibold text-danger-accent-text">Remove</Text>
         </Pressable>
       </View>
 
       {sessionExercise.sets.length === 0 ? (
-        <Text className="text-sm text-gray-400 mb-3">No sets logged yet</Text>
+        <Text className="text-sm text-muted mb-3">No sets logged yet</Text>
       ) : (
         <View className="mb-3">
           {sessionExercise.sets.map((set) => (
@@ -87,9 +87,9 @@ export function SessionExerciseCard({
 
       <Pressable
         onPress={() => onLogSet(reps, weight)}
-        className="bg-blue-600 rounded-xl py-3 items-center"
+        className="bg-primary-accent rounded-xl py-3 items-center"
       >
-        <Text className="text-white font-semibold">Log Set</Text>
+        <Text className="text-on-accent font-semibold">Log Set</Text>
       </Pressable>
     </View>
   );
