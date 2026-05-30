@@ -7,8 +7,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { workoutStore } from "./src/store/workoutStore";
 import { loadState } from "./src/persistence/persistence";
-import { navigationTheme } from "./src/theme";
-import "./global.css";
+import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
+import './global.css';
 
 export default function App() {
   const [hydrated, setHydrated] = useState(false);
@@ -22,27 +22,30 @@ export default function App() {
       }
       setHydrated(true);
     });
-    return () => {
+    return (
+      ) => {
       cancelled = true;
     };
   }, []);
 
   if (!hydrated) {
     return (
-      <View className="flex-1 bg-page items-center justify-center">
-        <Text className="text-primary">Loading…</Text>
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <Text>Loading…</Text>
       </View>
     );
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <NavigationContainer theme={navigationTheme}>
-          <RootNavigator />
-          <StatusBar style="light" />
-        </NavigationContainer>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <GluestackUIProvider mode="dark">
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <NavigationContainer>
+            <RootNavigator />
+            <StatusBar style="auto" />
+          </NavigationContainer>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </GluestackUIProvider>
   );
 }

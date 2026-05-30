@@ -4,13 +4,27 @@
     "strict": true,
     "jsx": "react-jsx",
     "moduleResolution": "bundler",
-    "types": ["jest", "node"],
-    "skipLibCheck": true
+    "types": [
+      "jest",
+      "node"
+    ],
+    "skipLibCheck": true,
+    "paths": {
+      "@/*": [
+        "./*"
+      ],
+      "tailwind.config": [
+        "./tailwind.config.js"
+      ]
+    }
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
     "nativewind-env.d.ts"
   ],
-  "exclude": ["node_modules", ".sandcastle"]
+  "exclude": [
+    "node_modules",
+    ".sandcastle"
+  ]
 }
